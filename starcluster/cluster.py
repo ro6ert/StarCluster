@@ -501,6 +501,7 @@ class Cluster(object):
         and volumes from the master node's user data.
         """
         try:
+            print "Hello World"
             tags = self.cluster_group.tags
             version = tags.get(static.VERSION_TAG, '')
             if utils.program_version_greater(version, static.VERSION):

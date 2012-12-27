@@ -137,6 +137,7 @@ class CmdStart(ClusterCompleter):
                           "each node on start-up. Can be used multiple times.")
 
     def execute(self, args):
+        print "Hello World from start.py again"
         if len(args) != 1:
             self.parser.error("please specify a <cluster_tag>")
         tag = args[0]
