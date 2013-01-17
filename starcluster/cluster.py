@@ -338,8 +338,8 @@ class ClusterManager(managers.Manager):
         if not cl.is_cluster_up():
             raise exception.ClusterNotRunning(cluster_tag)
         plugs = [self.cfg.get_plugin(plugin_name)]
-        name, plugin = cl.load_plugins(plugs)[0]
-        cl.run_plugin(plugin, name)
+        plug = deathrow._load_plugins(plugs)[0]
+        cl.run_plugin(plug, name=plugin_name)
 
 
 class Cluster(object):
@@ -464,6 +464,7 @@ class Cluster(object):
             plugins = deathrow._load_plugins(plugins)
         return plugins
 
+    @property
     def _default_plugin(self):
         if not self.__default_plugin:
             self.__default_plugin = clustersetup.DefaultClusterSetup(
@@ -471,6 +472,7 @@ class Cluster(object):
                 num_threads=self.num_threads)
         return self.__default_plugin
 
+    @property
     def _sge_plugin(self):
         if not self.__sge_plugin:
             self.__sge_plugin = sge.SGEPlugin(
@@ -1540,12 +1542,9 @@ class Cluster(object):
             raise
         except KeyboardInterrupt:
             raise
-        except Exception, e:
-            msg = "Error occurred while running plugin '%s':" % plugin_name
-            if isinstance(e, exception.ThreadPoolException):
-                log.error('\n'.join([msg, e.format_excs()]))
-            else:
-                log.error(msg, exc_info=True)
+        except Exception:
+            log.error("Error occured while running plugin '%s':" % plugin_name)
+            raise
 
     def ssh_to_master(self, user='root', command=None, forward_x11=False,
                       forward_agent=False):
@@ -2020,7 +2019,7 @@ class ClusterValidator(validators.Validator):
             aliases = max(lmap.values(), key=lambda x: len(x))
             ud = self.cluster._get_cluster_userdata(aliases)
         else:
-            ud = self.cluster._get_cluster_userdata('node001')
+            ud = self.cluster._get_cluster_userdata(['node001'])
         ud_size_kb = utils.size_in_kb(ud)
         if ud_size_kb > 16:
             raise exception.ClusterValidationError(
