@@ -24,6 +24,7 @@ try:
 except ImportError:
     HAS_TERMIOS = False
 
+from starcluster.__init__ import EUCALYPTUSFLAG
 from starcluster.sshutils import scp
 from starcluster import exception
 from starcluster import progressbar

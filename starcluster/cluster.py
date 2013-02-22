@@ -44,6 +44,8 @@ class ClusterManager(managers.Manager):
                 group = self.ec2.get_security_group(clname)
             cl = Cluster(ec2_conn=self.ec2, cluster_tag=cltag,
                          cluster_group=group)
+            log.debug("starcluster cluster.py get_cluster cl.cluster_group: "+ str(cl.cluster_group))
+            log.debug( "starcluster cluster.py get_cluster load_receipt: " + str(load_receipt))
             if load_receipt:
                 cl.load_receipt(load_plugins=load_plugins,
                                 load_volumes=load_volumes)
@@ -206,6 +208,7 @@ class ClusterManager(managers.Manager):
         querying EC2.
         """
         gname = self._get_cluster_name(group_name)
+        log.debug( "cluster.py get_cluster_security_group gname: " + str(gname))
         return self.ec2.get_security_group(gname)
 
     def get_cluster_group_or_none(self, group_name):
@@ -542,22 +545,30 @@ class Cluster(object):
         master node's user data.
         """
         try:
-            print "Hello World"
+            log.debug( "cluster.py load_receipt Hello World")
             tags = self.cluster_group.tags
+            log.debug( "cluster.py load_receipt tags: "+str(tags)) 
             version = tags.get(static.VERSION_TAG, '')
+            log.debug( "cluster.py load_receipt version: " + str(version))
+            log.debug("cluster.py load_receipt static.VERSION: "+str(static.VERSION))
             if utils.program_version_greater(version, static.VERSION):
+                log.debug("cluster.py load_receipt static.version: "+str(static.VERSION))
                 d = dict(cluster=self.cluster_tag, old_version=static.VERSION,
                          new_version=version)
                 msg = user_msgs.version_mismatch % d
                 sep = '*' * 60
                 log.warn('\n'.join([sep, msg, sep]), extra={'__textwrap__': 1})
             cluster_settings = {}
+            log.debug( "cluster.py load_receipt static.CORE_TAG: " + str(static.CORE_TAG))
             if static.CORE_TAG in tags:
                 core = tags.get(static.CORE_TAG, '')
+                log.debug("cluster.py load_receipt core: " + str(core))
                 cluster_settings.update(
                     utils.decode_uncompress_load(core, use_json=True))
+            log.debug("cluster.py load_receipt static.USER_TAG: " + str(static.USER_TAG))
             if static.USER_TAG in tags:
                 user = tags.get(static.USER_TAG, '')
+                log.debug("cluster.py load_receipt user: " + str(user))
                 cluster_settings.update(
                     utils.decode_uncompress_load(user, use_json=True))
             self.update(cluster_settings)
@@ -565,6 +576,7 @@ class Cluster(object):
                 return True
             try:
                 master = self.master_node
+                log.debug( "cluster.py load_receipt master: " + str(master))
             except exception.MasterDoesNotExist:
                 if self.spot_requests:
                     self.wait_for_active_spots()
@@ -583,6 +595,7 @@ class Cluster(object):
         except exception.MasterDoesNotExist:
             raise
         except Exception:
+            log.debug("cluster.py load_receipt: exception")
             log.debug('load receipt exception: ', exc_info=True)
             raise exception.IncompatibleCluster(self.cluster_group)
         return True
@@ -743,6 +756,7 @@ class Cluster(object):
 
     @property
     def spot_requests(self):
+        log.debug( "starcluster cluster.py spot_requests self.cluster_group.id: " + str(self.cluster_group.id))
         filters = {'launch.group-id': self.cluster_group.id,
                    'state': ['active', 'open']}
         return self.ec2.get_all_spot_requests(filters=filters)
@@ -1985,6 +1999,7 @@ class ClusterValidator(validators.Validator):
                 "Keypair '%s' does not exist in region '%s'" %
                 (keyname, cluster.ec2.region.name))
         fingerprint = keypair.fingerprint
+        log.debug( "cluster.py validate_keypair fingerprint: "+str(keypair))
         try:
             open(key_location, 'r').close()
         except IOError, e:

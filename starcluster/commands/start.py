@@ -137,20 +137,25 @@ class CmdStart(ClusterCompleter):
                           "each node on start-up. Can be used multiple times.")
 
     def execute(self, args):
-        print "Hello World from start.py again"
+        log.debug("Hello World from start.py again args: "+str(args))
         if len(args) != 1:
             self.parser.error("please specify a <cluster_tag>")
         tag = args[0]
         create = not self.opts.no_create
+        log.debug( "start.py execute create: "+str(create))
         scluster = self.cm.get_cluster_group_or_none(tag)
+        log.debug( "start.py execute scluster: "+ str(scluster))
         if scluster and create:
             scluster = self.cm.get_cluster(tag, group=scluster,
                                            load_receipt=False,
                                            require_keys=False)
+            log.debug("start.py execute scluster: "+ str(scluster))
             stopped_ebs = scluster.is_cluster_stopped()
+            log.debug("start.py execute stopped_ebs: "+str(stopped_ebs))
             is_ebs = False
             if not stopped_ebs:
                 is_ebs = scluster.is_ebs_cluster()
+                log.debug("start.py execute is_ebs: " + str(is_ebs))
             raise exception.ClusterExists(tag, is_ebs=is_ebs,
                                           stopped_ebs=stopped_ebs)
         if not create and not scluster:
@@ -163,6 +168,7 @@ class CmdStart(ClusterCompleter):
             scluster = self.cm.get_cluster(tag, group=scluster)
             validate_running = True
         else:
+            log.debug("start.py execute (not scluster)")
             template = self.opts.cluster_template
             if not template:
                 try:
@@ -179,6 +185,7 @@ class CmdStart(ClusterCompleter):
                     raise e
                 log.info("Using default cluster template: %s" % template)
             scluster = self.cm.get_cluster_template(template, tag)
+            log.debug("start.py execute scluster: " + str(type(scluster))+ str(scluster))
         scluster.update(self.specified_options_dict)
         if self.opts.keyname and not self.opts.key_location:
             key = self.cfg.get_key(self.opts.keyname)
@@ -193,6 +200,7 @@ class CmdStart(ClusterCompleter):
             if not validate_only and not create_only:
                 self.warn_experimental(msg, num_secs=5)
         try:
+            log.debug( "start.py scluster.start")
             scluster.start(create=create, create_only=create_only,
                            validate=validate, validate_only=validate_only,
                            validate_running=validate_running)

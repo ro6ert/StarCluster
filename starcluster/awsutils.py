@@ -13,6 +13,7 @@ import boto
 import boto.ec2
 import boto.s3.connection
 
+from starcluster.__init__ import EUCALYPTUSFLAG
 from starcluster import image
 from starcluster import utils
 from starcluster import static

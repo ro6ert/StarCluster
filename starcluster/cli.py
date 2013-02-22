@@ -248,13 +248,16 @@ class StarClusterCLI(object):
         self.print_header()
         # Parse subcommand options and args
         gopts, sc, opts, args = self.parse_subcommands()
+        log.debug("cli.py main gopts, sc,opts,args " + str(gopts)+str(sc)+str(opts)+str(args))
         if args and args[0] == 'help':
             # make 'help' subcommand act like --help option
             sc.parser.print_help()
             sys.exit(0)
         # run the subcommand and handle exceptions
         try:
+            log.debug( "cli.py main executing")
             sc.execute(args)
+            log.debug("cli.py main executed")
         except (EC2ResponseError, S3ResponseError, BotoServerError), e:
             log.error("%s: %s" % (e.error_code, e.error_message))
             sys.exit(1)
@@ -285,6 +288,7 @@ class StarClusterCLI(object):
             # re-raise SystemExit to avoid the bug-catcher below
             raise
         except Exception:
+            log.debug( "cli.py unhandled exception")
             log.error("Unhandled exception occured", exc_info=True)
             self.bug_found()
 

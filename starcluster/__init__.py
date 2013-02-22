@@ -4,7 +4,7 @@ sys.path.insert(0, static.STARCLUSTER_PLUGIN_DIR)
 
 import logging
 logging.basicConfig(filename="botoAmazon.log", level=logging.DEBUG)
-EUCALYPTUSFLAG = true
+EUCALYPTUSFLAG = True
 
 __version__ = static.VERSION
 __author__ = "Justin Riley (justin.t.riley@gmail.com)"
