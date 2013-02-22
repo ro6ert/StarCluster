@@ -227,7 +227,10 @@ class EasyEC2(EasyAWS):
         """
         Returns all security groups on this EC2 account
         """
-        return self.conn.get_all_security_groups(filters=filters)
+        log.debug( "awsutils.py filters" + str(filters))
+        securitygroups = self.conn.get_all_security_groups(filters=filters)
+        log.debug( "awsutils.py securitygroups : "+str(securitygroups)) 
+        return securitygroups
 
     def get_permission_or_none(self, group, ip_protocol, from_port, to_port,
                                cidr_ip=None):
@@ -494,10 +497,14 @@ class EasyEC2(EasyAWS):
             raise
 
     def get_all_spot_requests(self, spot_ids=[], filters=None):
-        spots = self.conn.get_all_spot_instance_requests(spot_ids,
+        log.debug( "starcluster awsutils.py get_all_spot_requests spot_ids: " + str(spot_ids))
+        if EUCALYPTUSFLAG:
+            return []
+        else:
+            spots = self.conn.get_all_spot_instance_requests(spot_ids,
                                                          filters=filters)
-        return spots
-
+            return spots
+        
     def list_all_spot_instances(self, show_closed=False):
         s = self.conn.get_all_spot_instance_requests()
         if not s:
