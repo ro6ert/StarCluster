@@ -791,8 +791,11 @@ def get_private_rsa_fingerprint(key_location):
     characters separated every 2 characters by a ':'). The fingerprint is
     computed using a SHA1 digest of the DER encoded RSA private key.
     """
+    log.debug( "sshutils/__init__.py get_private_rsa_fingerprint key_location: " + str(key_location))
     try:
         k = RSAKey.from_private_key_file(key_location)
+        log.debug( "sshutils/__init__.py get_private_rsa_fingerprint k: " + str(k))
+        log.debug( "sshutils/__init__.py get_private_rsa_fingerprint fingerprint: " + str(k.get_fingerprint()))
     except paramiko.SSHException:
         raise exception.SSHError("Invalid RSA private key file: %s" %
                                  key_location)
@@ -801,9 +804,19 @@ def get_private_rsa_fingerprint(key_location):
     assert len(params) == 8
     # must convert from pkcs1 to pkcs8 and then DER encode
     pkcs8der = export_rsa_to_pkcs8(params)
+    #print "sshutils/__init__.py get_private_rsa_fingerprint pkcs8der: "+ str(pkcs8der)
     sha1digest = hashlib.sha1(pkcs8der).hexdigest()
-    return insert_char_every_n_chars(sha1digest, ':', 2)
-
+    log.debug( "sshutils/__init__.py get_private_rsa_fingerprint sha1digest: "+str(sha1digest))
+    if not EUCALYPTUSFLAG:
+        return insert_char_every_n_chars(sha1digest, ':', 2)#FIXME
+    else:
+        os.system("openssl pkcs8 -in "+key_location+" -nocrypt -topk8 -outform DER | openssl sha1 -c > ./fingerprintfile.txt")#FIXME
+        file = open("./fingerprintfile.txt")
+        for line in file: #FIXME
+            returnThis = line.strip().split(" ")[1] #FIXME
+        file.close()
+        os.system("rm ./fingerprintfile.txt")
+        return returnThis
 
 def get_public_rsa_fingerprint(pubkey_location):
     try:
